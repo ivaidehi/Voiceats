@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "307478280139",
+    "project_id": "voiceats-f1ee8",
+    "storage_bucket": "voiceats-f1ee8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:307478280139:android:65fa4bc720023a0198a84e",
+        "android_client_info": {
+          "package_name": "com.example.voiceats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQ7Nm-YNVMJtesZ63wvseugGI20XLnFJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
