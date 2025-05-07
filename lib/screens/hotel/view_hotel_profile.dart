@@ -50,7 +50,7 @@ class ViewHotelProfile extends StatelessWidget {
       appBar: CustomAppbar(
         appbarTitle: 'View Hotel Profile',
         onBackPressed: (context) {
-          Navigator.pushNamed(context, '/hotelHomeScreen');
+          Navigator.pop(context);
         },
       ),
       body: SingleChildScrollView(
@@ -98,15 +98,14 @@ class ViewHotelProfile extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Our Menu Section
-            const Center(
-              child: Text(
-                'Our Menu',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+            const Text(
+              'Our Menu',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 16),
 
             // Menu Card Images
@@ -123,9 +122,11 @@ class ViewHotelProfile extends StatelessWidget {
                 itemCount: menuCardImageUrls.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () => _showFullScreenImage(context, menuCardImageUrls[index]),
+                    onTap: () =>
+                        _showFullScreenImage(context, menuCardImageUrls[index]),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12), // Matches hotel image style
+                      borderRadius: BorderRadius.circular(
+                          12), // Matches hotel image style
                       child: Image.network(
                         menuCardImageUrls[index],
                         fit: BoxFit.cover, // Matches hotel image style
@@ -137,7 +138,7 @@ class ViewHotelProfile extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Top/Special Menu Button
-            CustomButton(
+            const CustomButton(
               buttonText: "Top/Regular Menu",
               navigateToPage: '/setTopMenuScreen',
             ),

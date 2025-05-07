@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voiceats/custom%20widgets/custom_appbar.dart';
 import 'package:voiceats/custom%20widgets/custom_button.dart';
-import 'package:voiceats/custom%20widgets/head_title.dart';
 
 import '../custom widgets/styles.dart';
 
@@ -21,17 +20,17 @@ class CreateAccount extends StatelessWidget {
               height: 450, // Increased from 300 to 450
               width: double.infinity,
               color: const Color(0xFFA61617),
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.restaurant,
                       color: Colors.white,
                       size: 80,
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
+                    SizedBox(height: 12),
+                    Text(
                       "VOICEATS",
                       style: TextStyle(
                         color: Colors.white,
@@ -62,12 +61,12 @@ class CreateAccount extends StatelessWidget {
                   const SizedBox(height: 30),
 
                   // Customer Account Button
-                  CustomButton(
+                  const CustomButton(
                       buttonText: "Customer Account",
                       navigateToPage: '/customerRegister'),
 
                   const SizedBox(height: 20),
-                  CustomButton(
+                  const CustomButton(
                       buttonText: "Hotel Account",
                       navigateToPage: '/hotelRegister'),
 

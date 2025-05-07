@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:voiceats/custom%20widgets/styles.dart';
 
 class CustomButton extends StatefulWidget {
   final String buttonText;
@@ -9,7 +10,7 @@ class CustomButton extends StatefulWidget {
   final Widget? child; // New parameter for custom child widget
   final bool isLoading; // New parameter for loading state
 
-  CustomButton({
+  const CustomButton({
     super.key,
     required this.buttonText,
     this.navigateToPage,
@@ -31,7 +32,7 @@ class _CustomButtonState extends State<CustomButton> {
     return ElevatedButton(
       onPressed: widget.isLoading ? null : _handlePress,
       style: ElevatedButton.styleFrom(
-        backgroundColor: widget.backgroundColor ?? const Color(0xFFA61617),
+        backgroundColor: widget.backgroundColor ?? styles.primary,
         foregroundColor: widget.textColor ?? Colors.white,
         minimumSize: const Size(double.infinity, 55),
         shape: RoundedRectangleBorder(

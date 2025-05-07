@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voiceats/screens/create_account.dart';
 import 'package:voiceats/screens/customer/customer_home_screen.dart';
 import 'package:voiceats/screens/customer/customer_register_screen.dart';
+import 'package:voiceats/screens/customer/order_menu_screen.dart';
 import 'package:voiceats/screens/hotel/set_hotel_profile_screen.dart';
 import 'package:voiceats/screens/hotel/hotel_register_screen.dart';
 import 'package:voiceats/screens/hotel/order_status_screen.dart';
@@ -23,7 +25,14 @@ void main() async {
       // Add other required options
     ),
   );
-  runApp(MyApp());
+
+  // Initialize cache manager
+  try {
+    await DefaultCacheManager().emptyCache(); // Optional: clear cache on start
+  } catch (e) {
+    debugPrint("Cache initialization error: $e");
+  }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -32,7 +41,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Helloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+      title: 'VOICEATS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -42,8 +51,13 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const CreateAccount(),
+
+        // Customer side screens
         '/customerRegister': (context) => const CustomerRegisterScreen(),
-        '/customerHomeScreen': (context) => const CustomerHomescreen(),
+        '/customerHomeScreen': (context) => const CustomerHomeScreen(),
+        '/orderMenuScreen': (context) => const OrderMenuScreen(),
+
+        // Hotel side Screen
         '/hotelRegister': (context) => const HotelRegisterScreen(),
         '/hotelHomeScreen': (context) => const SetHotelProfileScreen(),
         '/setTopMenuScreen': (context) => const SetTopMenuScreen(),
@@ -113,7 +127,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               if (userType == 'hotel') {
                 return const SetHotelProfileScreen();
               } else {
-                return const CustomerHomescreen();
+                return const CustomerHomeScreen();
               }
             },
           );

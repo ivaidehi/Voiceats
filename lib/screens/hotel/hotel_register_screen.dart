@@ -80,7 +80,7 @@ class _HotelRegisterScreenState extends State<HotelRegisterScreen> {
 
   Future<String?> _uploadImageToImgBB(File imageFile) async {
     try {
-      final apiKey = 'acaf17dc0d62e42f7e5ab8a52bfef6d5'; // Replace with your actual ImgBB API key
+      const apiKey = 'acaf17dc0d62e42f7e5ab8a52bfef6d5'; // Replace with your actual ImgBB API key
       final url = Uri.parse('https://api.imgbb.com/1/upload?key=$apiKey');
 
       final bytes = await imageFile.readAsBytes();

@@ -137,7 +137,7 @@ class _SetTopMenuScreenState extends State<SetTopMenuScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        title: HeadTitle(title: 'Add Menu Item',),
+        title: const HeadTitle(title: 'Add Menu Item',),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

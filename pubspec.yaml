@@ -38,12 +38,16 @@ dependencies:
   intl_phone_field: ^3.1.0 # For phone number input
   image_picker: ^1.1.2
   http: ^0.13.6
+  cached_network_image: ^3.3.0
+  path_provider: ^2.1.1
+  flutter_cache_manager: ^3.3.0
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
 
+  path: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

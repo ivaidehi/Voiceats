@@ -24,4 +24,5 @@ class CustomArcClipper extends CustomClipper<Path> {
 class styles {
   // static ElevatedButton customButto
   static Color primary = const Color(0xFFA61617);
+  static Color bgcolor = const Color(0xFFFFEBEE);
 }

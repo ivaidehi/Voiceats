@@ -57,7 +57,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         labelStyle: TextStyle(
-          color: widget.isWarning ? const Color(0xFFA61617) : Colors.grey[600],
+          color: widget.isWarning ? Color(0xFFA61617) : styles.primary,
         ),
         border: OutlineInputBorder(
           borderSide: BorderSide(

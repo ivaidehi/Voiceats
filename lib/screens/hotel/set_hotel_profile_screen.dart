@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'package:voiceats/custom%20widgets/custom_appbar.dart';
 import 'package:voiceats/custom%20widgets/custom_button.dart';
+import 'package:voiceats/custom%20widgets/custom_inputfield.dart';
 import 'package:voiceats/custom%20widgets/head_title.dart';
 import 'package:voiceats/custom%20widgets/styles.dart';
 import 'package:voiceats/screens/hotel/order_status_screen.dart';
@@ -27,8 +28,8 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
   bool _isLoggingOut = false;
   bool _isLoading = false;
   File? _hotelImage;
-  List<File> _menuCardImages = [];
-  String? _imageUrl;
+  final List<File> _menuCardImages = [];
+  String? _hotelImageUrl;
   List<String> _menuCardImageUrls = [];
   final TextEditingController _descriptionController = TextEditingController();
   int _currentIndex = 0;
@@ -50,7 +51,7 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
       final doc = await _firestore.collection('Hotels').doc(user.uid).get();
       if (doc.exists) {
         setState(() {
-          _imageUrl = doc.data()?['imageUrl'];
+          _hotelImageUrl = doc.data()?['hotelImageUrl'];
           _menuCardImageUrls = List<String>.from(doc.data()?['menuCardImageUrls'] ?? []);
           _descriptionController.text = doc.data()?['description'] ?? '';
         });
@@ -129,7 +130,7 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
               _menuCardImageUrls.add(imageUrl);
             }
           } else {
-            _imageUrl = imageUrl;
+            _hotelImageUrl = imageUrl;
           }
         });
 
@@ -164,7 +165,7 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
     setState(() => _isLoading = true);
     try {
       await _firestore.collection('Hotels').doc(user.uid).set({
-        'imageUrl': _imageUrl,
+        'hotelImageUrl': _hotelImageUrl,
         'menuCardImageUrls': _menuCardImageUrls,
         'description': _descriptionController.text,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -214,11 +215,12 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
     }
   }
 
+  // Here remove that 3 dots instaed of this display log icon direlcty
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:  HeadTitle(title: 'Log Out',),
+        title:  const HeadTitle(title: 'Log Out',),
         content: Text('Are you sure you want to log out?', style: TextStyle(color: styles.primary, fontWeight: FontWeight.bold),),
         actions: [
           SizedBox(
@@ -240,7 +242,7 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: CustomButton(
-                      buttonText: "Add",
+                      buttonText: "Log Out",
                       onPressed: _logout,
                       // buttonHeight: 40,
                     ),
@@ -276,7 +278,7 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
                 child: Row(
                   children: [
                     Text('Log Out', style: TextStyle(color: styles.primary, fontWeight: FontWeight.bold, fontSize: 15),),
-                    SizedBox(width: 10,),
+                    const SizedBox(width: 10,),
                     Icon(Icons.logout, color: styles.primary,),
                   ],
                 ),
@@ -287,7 +289,299 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _currentIndex == 1 ? _buildProfileScreen() : OrderStatusScreen(),
+          : _currentIndex == 1 ? SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // const SizedBox(height: 20),
+              Text(
+                'Upload Hotel Image',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: styles.primary),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () => _pickImage(),
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Image or Placeholder (FORCED to fill Container)
+                      if (_hotelImage != null || _hotelImageUrl != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: _hotelImage != null
+                              ? Image.file(
+                            _hotelImage!,
+                            fit: BoxFit.cover,  // Ensures image covers the space
+                            width: double.infinity,  // Forces full width
+                            height: double.infinity, // Forces full height
+                          )
+                              : Image.network(
+                            _hotelImageUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                        )
+                      else
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_a_photo, size: 50, color: Colors.red[200]),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Upload Hotel Image',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Edit Icon (Top-Right Corner)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          child:  Icon(
+                            Icons.edit,
+                            color: Colors.red[900],
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              CustomInputField(controller: _descriptionController, labelText: "About Hotel (Description)", warning: "Please Enter Hotel Description", maxlines: 3,),
+              const SizedBox(height: 20),
+              const CustomButton(
+                buttonText: "Top/Regular Menu",
+                navigateToPage: '/setTopMenuScreen',
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Upload Menu Card Images',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: styles.primary),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'You can add multiple menu card images',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1,
+                ),
+                itemCount: _menuCardImageUrls.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == _menuCardImageUrls.length) {
+                    return GestureDetector(
+                      onTap: () => _pickImage(isMenuCard: true),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, size: 40, color: Colors.red[200]),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Add Image',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  void showFullScreenImage(BuildContext context, String imageUrl) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          backgroundColor: Colors.black,
+                          appBar: AppBar(
+                            backgroundColor: Colors.black,
+                            iconTheme: const IconThemeData(color: Colors.white),
+                          ),
+                          body: Center(
+                            child: InteractiveViewer(
+                              panEnabled: true,
+                              minScale: 0.5,
+                              maxScale: 3.0,
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return GestureDetector(
+                    onTap: () {
+                      final imageUrl = index < _menuCardImages.length
+                          ? null
+                          : _menuCardImageUrls[index - _menuCardImages.length];
+                      if (imageUrl != null) {
+                        showFullScreenImage(context, imageUrl);
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12), // Match hotel image
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Stack(
+                        children: [
+                          // Image Container (Square aspect ratio)
+                          AspectRatio(
+                            aspectRatio: 1, // Force square shape
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: index < _menuCardImages.length
+                                  ? Image.file(
+                                _menuCardImages[index],
+                                fit: BoxFit.cover,
+                              )
+                                  : _menuCardImageUrls.length > index - _menuCardImages.length
+                                  ? Image.network(
+                                _menuCardImageUrls[index - _menuCardImages.length],
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) => const Center(
+                                  child: Icon(Icons.broken_image, color: Colors.grey),
+                                ),
+                              )
+                                  : Container(color: Colors.grey[200]),
+                            ),
+                          ),
+
+                          // Edit/Delete Buttons
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Edit Button
+                                    // InkWell(
+                                    //   onTap: () => _pickImage(isMenuCard: true, replaceIndex: index),
+                                    //   borderRadius: BorderRadius.circular(12),
+                                    //   child: Padding(
+                                    //     padding: EdgeInsets.all(4),
+                                    //     child: Icon(
+                                    //       Icons.edit,
+                                    //       size: 18,
+                                    //       color: Colors.red[900],
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // const SizedBox(width: 4),
+                                    // Delete Button
+                                    InkWell(
+                                      onTap: () => _removeMenuCardImage(index),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(4),
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 20,
+                                          color: Colors.red[900],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Flexible(
+                    child: CustomButton(
+                      buttonText: "View Profile",
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewHotelProfile(
+                              description: _descriptionController.text,
+                              imageUrl: _hotelImageUrl,
+                              menuCardImageUrls: _menuCardImageUrls,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Flexible(
+                    child: CustomButton(
+                      buttonText: "Save Profile",
+                      onPressed: _saveProfile,
+                    ),
+                  ),
+                ],
+              )
+
+            ],
+          ),
+        ),
+      ) : const OrderStatusScreen(),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: styles.primary,
         unselectedItemColor: Colors.grey,
@@ -303,284 +597,6 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
             label: 'Profile',
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildProfileScreen() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // const SizedBox(height: 20),
-            Text(
-              'Upload Hotel Image',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: styles.primary),
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () => _pickImage(),
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: _hotelImage != null
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(_hotelImage!, fit: BoxFit.cover),
-                )
-                    : _imageUrl != null
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(_imageUrl!, fit: BoxFit.cover),
-                )
-                    : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_a_photo, size: 50, color: Colors.red[200]),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Upload Hotel Image',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Add Description',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: styles.primary),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: _descriptionController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintStyle: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.normal),
-                hintText: 'Enter your hotel description here...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.red[50],
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter description';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              buttonText: "Top/Regular Menu",
-              navigateToPage: '/setTopMenuScreen',
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Upload Menu Card Images',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: styles.primary),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'You can add multiple menu card images',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 10),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 1,
-              ),
-              itemCount: _menuCardImageUrls.length + 1,
-              itemBuilder: (context, index) {
-                if (index == _menuCardImageUrls.length) {
-                  return GestureDetector(
-                    onTap: () => _pickImage(isMenuCard: true),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_a_photo, size: 40, color: Colors.red[200]),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Add Image',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                void _showFullScreenImage(BuildContext context, String imageUrl) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        backgroundColor: Colors.black,
-                        appBar: AppBar(
-                          backgroundColor: Colors.black,
-                          iconTheme: const IconThemeData(color: Colors.white),
-                        ),
-                        body: Center(
-                          child: InteractiveViewer(
-                            panEnabled: true,
-                            minScale: 0.5,
-                            maxScale: 3.0,
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    final imageUrl = index < _menuCardImages.length
-                        ? null
-                        : _menuCardImageUrls[index - _menuCardImages.length];
-                    if (imageUrl != null) {
-                      _showFullScreenImage(context, imageUrl);
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12), // Match hotel image
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Image Container (Square aspect ratio)
-                        AspectRatio(
-                          aspectRatio: 1, // Force square shape
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: index < _menuCardImages.length
-                                ? Image.file(
-                              _menuCardImages[index],
-                              fit: BoxFit.cover,
-                            )
-                                : _menuCardImageUrls.length > index - _menuCardImages.length
-                                ? Image.network(
-                              _menuCardImageUrls[index - _menuCardImages.length],
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                        : null,
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) => Center(
-                                child: Icon(Icons.broken_image, color: Colors.grey),
-                              ),
-                            )
-                                : Container(color: Colors.grey[200]),
-                          ),
-                        ),
-
-                        // Edit/Delete Buttons
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Edit Button
-                                  InkWell(
-                                    onTap: () => _pickImage(isMenuCard: true, replaceIndex: index),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(
-                                        Icons.edit,
-                                        size: 18,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  // Delete Button
-                                  InkWell(
-                                    onTap: () => _removeMenuCardImage(index),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(
-                                        Icons.close,
-                                        size: 18,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 30),
-            CustomButton(
-              buttonText: "Save Profile",
-              onPressed: _saveProfile,
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              buttonText: "View Profile",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ViewHotelProfile(
-                      description: _descriptionController.text,
-                      imageUrl: _imageUrl,
-                      menuCardImageUrls: _menuCardImageUrls,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
