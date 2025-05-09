@@ -9,7 +9,7 @@ class HeadTitle extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 24, // Slightly smaller font
+        fontSize: 22, // Slightly smaller font
         fontWeight: FontWeight.bold,
         color: Color(0xFFA61617),
       ),

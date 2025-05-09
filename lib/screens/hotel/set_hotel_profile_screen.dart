@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:voiceats/custom%20widgets/custom_appbar.dart';
 import 'package:voiceats/custom%20widgets/custom_button.dart';
 import 'package:voiceats/custom%20widgets/custom_inputfield.dart';
+import 'package:voiceats/custom%20widgets/custom_logout.dart';
 import 'package:voiceats/custom%20widgets/head_title.dart';
 import 'package:voiceats/custom%20widgets/styles.dart';
 import 'package:voiceats/screens/hotel/order_status_screen.dart';
@@ -266,26 +267,12 @@ class _SetHotelProfileScreenState extends State<SetHotelProfileScreen> {
         appbarTitle: 'Set Hotel Profile',
         onBackPressed: (context) => Navigator.pushNamed(context, '/hotelHomeScreen'),
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'logout') {
-                _showLogoutConfirmation();
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Text('Log Out', style: TextStyle(color: styles.primary, fontWeight: FontWeight.bold, fontSize: 15),),
-                    const SizedBox(width: 10,),
-                    Icon(Icons.logout, color: styles.primary,),
-                  ],
-                ),
-              ),
-            ],
+          IconButton(
+            icon: Icon(Icons.logout, color: styles.primary),
+            onPressed: () => CustomLogOut.showLogoutConfirmationDialog(context),
           ),
         ],
+
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:voiceats/custom%20widgets/custom_appbar.dart';
 import 'package:voiceats/custom%20widgets/styles.dart';
 
+import '../../custom widgets/custom_hotel_card.dart';
+import '../../custom widgets/custom_logout.dart';
 import '../../custom widgets/custom_searchbar.dart';
+import '../../get data/get_data.dart';
 import 'order_menu_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
@@ -15,7 +17,7 @@ class CustomerHomeScreen extends StatefulWidget {
 }
 
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
-  String customerName = "Customer Name";
+  String customerName = "";
   int profileImageIndex = 0;
   final List<Map<String, dynamic>> hotels = [];
   final TextEditingController _searchController = TextEditingController();
@@ -64,21 +66,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   Future<void> _loadUserData() async {
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) return;
+      final name = await GetCustomerData.getCustomerName();
+      final index = await GetCustomerData.getCustomerProfileImageIndex();
 
-      final userDoc = await FirebaseFirestore.instance
-          .collection('Customers')
-          .doc(currentUser.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
         setState(() {
-          customerName = userDoc.data()?['aiGeneratedName'] ?? customerName;
-          profileImageIndex = userDoc.data()?['profileImageIndex'] ?? 0;
+          customerName = name;
+          profileImageIndex = index;
         });
-        await prefs.setString('aiGeneratedName', customerName);
       }
     } catch (e) {
       debugPrint("Error loading user data: $e");
@@ -91,31 +86,26 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           await FirebaseFirestore.instance.collection('Hotels').get();
 
       if (snapshot.docs.isNotEmpty) {
-        setState(() {
-          hotels.clear();
-          hotels.addAll(snapshot.docs.map((doc) => {
-                'name': doc['hotelName'] ?? 'Hotel Name',
-                'imageUrl':
-                    doc['hotelImageUrl'] ?? 'https://via.placeholder.com/150',
-                'id': doc.id,
-              }));
-        });
+        hotels.clear();
+
+        for (var doc in snapshot.docs) {
+          final hotelId = doc.id;
+          final name = await GetHotelData.getHotelName(hotelId);
+          final imageUrl = await GetHotelData.getHotelImageUrl(hotelId);
+
+          hotels.add({
+            'id': hotelId,
+            'name': name,
+            'imageUrl': imageUrl,
+          });
+        }
+
+        if (mounted) {
+          setState(() {});
+        }
       }
     } catch (e) {
       debugPrint("Error fetching hotels: $e");
-    }
-  }
-
-  Future<void> _logout() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Logout failed: ${e.toString()}")),
-      );
     }
   }
 
@@ -123,22 +113,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: AssetImage(_profileImages[profileImageIndex]),
-            ),
-            const SizedBox(width: 53),
-            Text(customerName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: styles.primary)),
-          ],
-        ),
+      appBar: CustomAppbar(
+        appbarTitle: customerName,
+        onBackPressed: (context) =>
+            Navigator.pushNamed(context, '/customerHomeScreen'),
+        showProfileImage: true,
+        profileImagePath: _profileImages[profileImageIndex],
         actions: [
-          IconButton(
-            icon:  Icon(Icons.logout, color: styles.primary,),
-            onPressed: _logout,
+          Center(
+            child: IconButton(
+              icon: Icon(Icons.logout, color: styles.primary),
+              onPressed: () =>
+                  CustomLogOut.showLogoutConfirmationDialog(context),
+            ),
           ),
         ],
       ),
@@ -158,7 +145,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           const SizedBox(height: 20),
           Text(
             'Explore Hotels',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: styles.primary),
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: styles.primary),
           ),
           const SizedBox(height: 15),
           _buildHotelsList(),
@@ -191,7 +181,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Widget _buildHotelCard(Map<String, dynamic> hotel) {
     bool isFavorite = false; // You'll want to manage this state properly
 
-    return GestureDetector(
+    return CustomHotelCard(
+      hotel: hotel,
+      isFavorite: isFavorite,
       onTap: () {
         Navigator.push(
           context,
@@ -200,115 +192,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
         );
       },
-      child: Card(
-        color: styles.bgcolor,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: SizedBox(
-          height: 200,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Hotel Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12.0),
-                child: Image.network(
-                  hotel['imageUrl'],
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                ),
-              ),
-      
-              // Black Gradient Overlay
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.0),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.8),
-                      Colors.transparent,
-                    ],
-                    stops: [0.1, 0.5],
-                  ),
-                ),
-              ),
-      
-              // Hotel Info
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      hotel['name'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          '4.0 (100 Reviews)',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-      
-              // Favorite Button
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.white,
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    // TODO: Implement favorite toggle functionality
-                    setState(() {
-                      isFavorite = !isFavorite;
-                    });
-                    // Call method to update in Firestore
-                    // _toggleFavorite(hotel['id'], isFavorite);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      onFavoritePressed: () {
+        setState(() {
+          isFavorite = !isFavorite;
+        });
+        // Call method to update in Firestore
+        // _toggleFavorite(hotel['id'], isFavorite);
+      },
+      showOrderNowButton: true,
     );
   }
 }

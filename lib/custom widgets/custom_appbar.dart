@@ -5,12 +5,16 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String appbarTitle;
   final void Function(BuildContext context)? onBackPressed;
   final List<Widget>? actions;
-
+  final String? profileImagePath; // ✅ New parameter
+  final bool showProfileImage;    // ✅ New flag
 
   const CustomAppbar({
     super.key,
     required this.appbarTitle,
-    this.onBackPressed, this.actions,
+    this.onBackPressed,
+    this.actions,
+    this.profileImagePath,
+    this.showProfileImage = false,
   });
 
   @override
@@ -31,7 +35,17 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
           },
         ),
       ),
-      actions: actions,
+      actions: [
+        if (showProfileImage && profileImagePath != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: CircleAvatar(
+              radius: 20,
+              backgroundImage: AssetImage(profileImagePath!),
+            ),
+          ),
+        if (actions != null) ...actions!,
+      ],
     );
   }
 

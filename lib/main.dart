@@ -8,6 +8,7 @@ import 'package:voiceats/screens/create_account.dart';
 import 'package:voiceats/screens/customer/customer_home_screen.dart';
 import 'package:voiceats/screens/customer/customer_register_screen.dart';
 import 'package:voiceats/screens/customer/order_menu_screen.dart';
+import 'package:voiceats/screens/customer/order_now_screen.dart';
 import 'package:voiceats/screens/hotel/set_hotel_profile_screen.dart';
 import 'package:voiceats/screens/hotel/hotel_register_screen.dart';
 import 'package:voiceats/screens/hotel/order_status_screen.dart';
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         '/customerRegister': (context) => const CustomerRegisterScreen(),
         '/customerHomeScreen': (context) => const CustomerHomeScreen(),
         '/orderMenuScreen': (context) => const OrderMenuScreen(),
+        '/orderNowScreen': (context) => const OrderNowScreen(),
 
         // Hotel side Screen
         '/hotelRegister': (context) => const HotelRegisterScreen(),
