@@ -37,10 +37,4 @@ Currently Under Development
 
 
 
-<!-- Replace YOUR_IMAGE_ID_HERE with the actual GitHub-hosted image ID for the Home Screen -->
 
----
-
-> Note: Ensure your third image (Home Screen) is uploaded and hosted the same way as the others, then replace `YOUR_IMAGE_ID_HERE` with its actual GitHub URL or ID.
-
-Would you like help uploading the Home Screen image or more layout customization (like captions under each image)?
