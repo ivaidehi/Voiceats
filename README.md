@@ -1,5 +1,4 @@
-# appointment_app
-**Voice- Enabled Hotel/Restaurant Menu Ordering App**
+# Voice- Enabled Hotel/Restaurant Menu Ordering App
 **Voiceats**
 
 ## Getting Started
